@@ -9,6 +9,7 @@ spread in sunlit fraction, preferring groups whose sliver was measured rather th
 import os, json
 import numpy as np
 import cv2
+import tifffile
 
 
 def select(groups, n):
@@ -35,11 +36,15 @@ def select(groups, n):
 
 def moon_tile(g, size):
     """Square crop around the disk, resized, with a soft circular fade so it composites on black."""
-    im = cv2.imread(g["final_jpg"], cv2.IMREAD_COLOR)
+    # 16-bit TIFF when available (lossless chain), JPG otherwise; work in float 0..1, BGR
+    if g.get("final_tif") and os.path.exists(g["final_tif"]):
+        im = tifffile.imread(g["final_tif"]).astype(np.float32)[..., ::-1] / 65535.0
+    else:
+        im = cv2.imread(g["final_jpg"], cv2.IMREAD_COLOR).astype(np.float32) / 255.0
     S = im.shape[0]
     c = int(g["R"] * 1.10)
     x0, y0 = int(round(g["mcx"] - c)), int(round(g["mcy"] - c))
-    crop = np.zeros((2 * c, 2 * c, 3), np.uint8)
+    crop = np.zeros((2 * c, 2 * c, 3), np.float32)
     xs, ys, xe, ye = max(x0, 0), max(y0, 0), min(x0 + 2 * c, S), min(y0 + 2 * c, S)
     crop[ys - y0:ye - y0, xs - x0:xe - x0] = im[ys:ye, xs:xe]
     t = cv2.resize(crop, (size, size), interpolation=cv2.INTER_AREA).astype(np.float32)
@@ -57,8 +62,20 @@ def paste(canvas, tile, x, y):
 
 
 def caption(canvas, text, y, size=0.9, color=(150, 150, 160)):
+    """draw anti-aliased text onto a float canvas via an 8-bit mask"""
     (tw, th), _ = cv2.getTextSize(text, cv2.FONT_HERSHEY_DUPLEX, size, 1)
-    cv2.putText(canvas, text, ((canvas.shape[1] - tw) // 2, y), cv2.FONT_HERSHEY_DUPLEX, size, color, 1, cv2.LINE_AA)
+    m = np.zeros(canvas.shape[:2], np.uint8)
+    cv2.putText(m, text, ((canvas.shape[1] - tw) // 2, y), cv2.FONT_HERSHEY_DUPLEX, size, 255, 1, cv2.LINE_AA)
+    a = (m.astype(np.float32) / 255.0)[..., None]
+    col = np.array(color, np.float32)[None, None, :] / 255.0
+    canvas[:] = canvas * (1 - a) + col * a
+
+
+def save(path_base, canvas):
+    """canvas float 0..1 BGR -> 16-bit PNG (lossless) + 8-bit JPG"""
+    c = np.clip(canvas, 0, 1)
+    cv2.imwrite(path_base + ".png", (c * 65535 + 0.5).astype(np.uint16))
+    cv2.imwrite(path_base + ".jpg", (c * 255 + 0.5).astype(np.uint8), [cv2.IMWRITE_JPEG_QUALITY, 95])
 
 
 def arc_layout(chosen, W, H, label):
@@ -72,9 +89,8 @@ def arc_layout(chosen, W, H, label):
         cy = int(top + t * (bottom - top))
         cx = int(W / 2 - amp * np.cos(np.pi * t))                # sweep left -> right
         paste(canvas, moon_tile(g, d), cx - d // 2, cy - d // 2)
-    out = np.clip(canvas, 0, 255).astype(np.uint8)
-    caption(out, label, int(H * 0.955))
-    return out
+    caption(canvas, label, int(H * 0.955))
+    return canvas
 
 
 def grid_layout(chosen, W, H, label, cols=2):
@@ -93,9 +109,8 @@ def grid_layout(chosen, W, H, label, cols=2):
     for i, g in enumerate(chosen):
         r, c = divmod(i, cols)
         paste(canvas, moon_tile(g, d), x0 + c * (d + gap), top + r * (d + gap))
-    out = np.clip(canvas, 0, 255).astype(np.uint8)
-    caption(out, label, top + block + int(H * 0.035), 0.85)
-    return out
+    caption(canvas, label, top + block + int(H * 0.035), 0.85)
+    return canvas
 
 
 def hero_layout(chosen, hero, W, H, label):
@@ -111,9 +126,8 @@ def hero_layout(chosen, hero, W, H, label):
     for g in row:
         paste(canvas, moon_tile(g, d), x, y)
         x += d + gap
-    out = np.clip(canvas, 0, 255).astype(np.uint8)
-    caption(out, label, int(H * 0.80) + d // 2 + 10, 0.8)
-    return out
+    caption(canvas, label, int(H * 0.80) + d // 2 + 10, 0.8)
+    return canvas
 
 
 def run(cfg, groups, log=print):
@@ -126,12 +140,11 @@ def run(cfg, groups, log=print):
     date = chosen[0]["t_start"][:10].replace(":", ".")
     label = pc.get("caption", f"{date}   LUNAR ECLIPSE")
     outdir = os.path.join(cfg["output_dir"], "final")
-    p0 = os.path.join(outdir, "phone_grid.jpg")
-    p1 = os.path.join(outdir, "phone_arc.jpg"); p2 = os.path.join(outdir, "phone_hero.jpg")
-    cv2.imwrite(p0, grid_layout(chosen, W, H, label, pc.get("cols", 2)), [cv2.IMWRITE_JPEG_QUALITY, 95])
-    cv2.imwrite(p1, arc_layout(chosen, W, H, label), [cv2.IMWRITE_JPEG_QUALITY, 95])
-    cv2.imwrite(p2, hero_layout(chosen, hero, W, H, label), [cv2.IMWRITE_JPEG_QUALITY, 95])
-    log(f"[phone] {W}x{H}: {len(chosen)} phases {[g['name'] for g in chosen]} -> {p0}, {p1}, {p2}")
+    p0 = os.path.join(outdir, "phone_grid"); p1 = os.path.join(outdir, "phone_arc"); p2 = os.path.join(outdir, "phone_hero")
+    save(p0, grid_layout(chosen, W, H, label, pc.get("cols", 2)))
+    save(p1, arc_layout(chosen, W, H, label))
+    save(p2, hero_layout(chosen, hero, W, H, label))
+    log(f"[phone] {W}x{H}: {len(chosen)} phases {[g['name'] for g in chosen]} -> {p0}.png/.jpg, {p1}, {p2}")
     return chosen
 
 
