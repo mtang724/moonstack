@@ -1,0 +1,11 @@
+{
+  "name": "moonstack",
+  "owner": { "name": "Mingyue Tang" },
+  "plugins": [
+    {
+      "name": "moonstack",
+      "source": "./",
+      "description": "Lunar eclipse RAW stacking: frame rejection, phase grouping, HDR-aware stacking, PixInsight/Photoshop automation, and the lunar-eclipse-stacking skill."
+    }
+  ]
+}

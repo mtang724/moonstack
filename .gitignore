@@ -1,0 +1,9 @@
+# source RAWs and everything the pipeline produces
+Eclipse/
+output/
+config.json
+
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db

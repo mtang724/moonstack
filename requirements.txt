@@ -1,0 +1,7 @@
+numpy>=1.24
+rawpy>=0.19
+opencv-python>=4.8
+scikit-image>=0.20
+tifffile>=2021.7
+exifread>=3.0
+Pillow>=9.0

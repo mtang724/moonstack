@@ -1,0 +1,18 @@
+{
+  "input_dir": "Eclipse",
+  "output_dir": "output",
+  "sensor_width_mm": 23.5,
+  "workers": 6,
+
+  "pixinsight_exe": "C:/Program Files/PixInsight/bin/PixInsight.exe",
+  "use_pixinsight": true,
+  "photoshop_exe": "C:/Program Files/Adobe/Adobe Photoshop 2025/Photoshop.exe",
+  "use_photoshop": true,
+
+  "keep_ratio": 0.70,
+  "max_trail_px": 6.0,
+  "rescue_highlights": true,
+
+  "phone": {"width": 1080, "height": 2340, "moons": 6, "cols": 2, "caption": "2026.08.27   LUNAR ECLIPSE"},
+  "look": {"deep_base_stops": 4.5, "deep_detail_gain": 1.2, "deep_saturation": 1.15, "deep_highlight": 0.85}
+}

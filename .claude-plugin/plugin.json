@@ -1,0 +1,8 @@
+{
+  "name": "moonstack",
+  "description": "Lunar eclipse RAW stacking and post-processing pipeline, plus the skill that teaches an agent to run and tune it.",
+  "version": "1.0.0",
+  "author": { "name": "Mingyue Tang" },
+  "license": "MIT",
+  "keywords": ["astrophotography", "lunar-eclipse", "stacking", "HDR", "pixinsight", "photoshop"]
+}
