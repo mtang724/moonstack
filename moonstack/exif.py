@@ -1,5 +1,6 @@
-"""Read exposure metadata. Prefers the JPG sidecar (fast, PIL), falls back to exifread on the RAW."""
-import os, datetime
+"""Read exposure metadata: JPG sidecar (fast, PIL) -> exifread on the RAW (TIFF-based formats:
+NEF, CR2, ARW, RAF, DNG, ORF, RW2, PEF...) -> exiftool if on PATH (CR3 and other ISO-BMFF RAWs)."""
+import os, datetime, shutil, subprocess, json
 from PIL import Image
 from PIL.ExifTags import TAGS
 
@@ -35,9 +36,22 @@ def read(raw_path):
             "FocalLength": t["EXIF FocalLength"].values[0] if "EXIF FocalLength" in t else None,
             "Model": str(t.get("Image Model", "")),
         }
+    if not tags.get("ExposureTime") and shutil.which("exiftool"):
+        out = subprocess.run(["exiftool", "-j", "-n", "-DateTimeOriginal", "-ExposureTime", "-ISO", "-FNumber",
+                              "-FocalLength", "-Model", raw_path], capture_output=True, text=True)
+        try:
+            j = json.loads(out.stdout)[0]
+            tags = {"DateTimeOriginal": j.get("DateTimeOriginal"), "ExposureTime": j.get("ExposureTime"),
+                    "ISOSpeedRatings": j.get("ISO"), "FNumber": j.get("FNumber"),
+                    "FocalLength": j.get("FocalLength"), "Model": j.get("Model", "")}
+        except Exception:
+            pass
+    if not tags.get("ExposureTime"):
+        raise SystemExit(f"{meta['file']}: no exposure metadata found (no JPG sidecar, exifread failed, "
+                         f"exiftool not on PATH). Install exiftool or keep the camera JPGs next to the RAWs.")
     dt = tags.get("DateTimeOriginal")
     meta["datetime"] = dt
-    meta["t"] = datetime.datetime.strptime(dt, "%Y:%m:%d %H:%M:%S").timestamp() if dt else 0.0
+    meta["t"] = datetime.datetime.strptime(str(dt)[:19], "%Y:%m:%d %H:%M:%S").timestamp() if dt else 0.0
     meta["exp"] = _ratio(tags.get("ExposureTime")) or 1.0
     iso = tags.get("ISOSpeedRatings")
     if isinstance(iso, (tuple, list)):

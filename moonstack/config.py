@@ -4,11 +4,18 @@ DEFAULTS = {
     "input_dir": "Eclipse",
     "output_dir": "output",
     "cache_dir": "output/cache",
-    "raw_ext": [".RAF", ".raf", ".NEF", ".CR2", ".CR3", ".ARW", ".DNG"],
+    # any format LibRaw decodes; matched case-insensitively
+    "raw_ext": [".raf", ".nef", ".nrw", ".cr2", ".cr3", ".arw", ".srf", ".sr2", ".dng", ".orf", ".rw2", ".pef", ".raw", ".rwl", ".3fr", ".fff", ".iiq", ".x3f"],
     "crop_size": 1024,
     "workers": 6,
-    # sensor geometry (Fuji X-T30 APS-C). Used only as a prior for moon radius.
+    # sensor geometry - only a prior for the moon radius (recalibrated from full-disk frames)
+    # and for the trailing estimate. APS-C ~23.5, full frame 36, Micro Four Thirds 17.3, 1" 13.2.
+    # pixel_pitch_um (if set) overrides sensor_width_mm; focal_mm overrides the EXIF focal length
+    # (needed for telescopes / manual lenses that report nothing).
     "sensor_width_mm": 23.5,
+    "pixel_pitch_um": None,
+    "focal_mm": None,
+    "tracked": False,          # true for an equatorial mount: no drift model, no trailing rejection
     "moon_diameter_deg": 0.52,
     # frame quality
     "keep_ratio": 0.70,        # keep frames with sharpness >= keep_ratio * best in group

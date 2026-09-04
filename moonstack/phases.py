@@ -55,7 +55,7 @@ def sun_fraction(cfg, recs, ref, ref_scale):
         r["sun_frac"] = float(sun.sum() / disk.sum())
         # 'long' = exposure regime that records the umbra (>= 6 stops more than a sunlit-moon exposure)
         r["long"] = bool(_stops(r) - np.log2(1.0 / ref_scale) >= 6)
-        r["trail_px"] = analyze.trail_px(r, cfg["sensor_width_mm"])
+        r["trail_px"] = analyze.trail_px(r, cfg)
 
 
 def run(cfg, recs, log=print):

@@ -108,6 +108,8 @@ def align_group(cfg, frs, ref_rec, log):
     center = {r["file"]: (r["mcx"] + r["x0"], r["mcy"] + r["y0"]) for r in frs}   # full-frame coords
     tight = set()
     good = [r for r in frs if conf[r["file"]] >= 0.5]
+    if cfg.get("tracked"):
+        good = []          # tracked mount: the measured centers are already consistent, no drift to model
     weak = [r for r in frs if conf[r["file"]] < 0.5]
     if weak and len(good) >= 2 and (max(r["t"] for r in good) - min(r["t"] for r in good)) > 1:
         t = np.array([r["t"] for r in good]); A = np.c_[np.ones_like(t), t - t.mean()]

@@ -4,9 +4,8 @@ import numpy as np
 import cv2
 
 
-def radius_prior_px(meta, img_width, sensor_width_mm, moon_diameter_deg):
-    pitch = sensor_width_mm / img_width
-    return meta["focal"] * np.tan(np.deg2rad(moon_diameter_deg / 2)) / pitch
+def radius_prior_px(meta, pitch_mm, moon_diameter_deg):
+    return meta["focal"] * np.tan(np.deg2rad(moon_diameter_deg / 2)) / pitch_mm
 
 
 def lit_mask(lum, thr_frac=0.08):

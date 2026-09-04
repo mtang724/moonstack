@@ -2,6 +2,9 @@
   "input_dir": "Eclipse",
   "output_dir": "output",
   "sensor_width_mm": 23.5,
+  "pixel_pitch_um": null,
+  "focal_mm": null,
+  "tracked": false,
   "workers": 6,
 
   "pixinsight_exe": "C:/Program Files/PixInsight/bin/PixInsight.exe",

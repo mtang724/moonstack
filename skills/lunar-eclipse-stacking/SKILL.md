@@ -1,11 +1,11 @@
 ---
 name: lunar-eclipse-stacking
-description: One-click post-processing of a lunar eclipse (or any moon) RAW sequence shot on a fixed tripod - reject blurred/clipped frames, auto-split the eclipse into phases, sub-pixel align, HDR-aware stack in linear radiance, denoise/deconvolve headlessly in PixInsight, tone-map the umbra, rebuild blown sunlit slivers, and deliver per-phase TIFF/JPG, layered Photoshop PSDs, phone-format composites and an HTML report. Use when someone has a folder of moon/eclipse RAWs (RAF/NEF/CR3/ARW/DNG) and asks to stack, align, denoise, HDR-merge, or "do the post-processing" for them, or asks whether RAW is worth it.
+description: One-click post-processing of a lunar eclipse (or any moon) RAW sequence from any camera (Canon/Nikon/Sony/Fuji/Olympus/Panasonic/Pentax/DNG), tripod or tracked mount - reject blurred/clipped frames, auto-split the eclipse into phases, sub-pixel align, HDR-aware stack in linear radiance, denoise/deconvolve headlessly in PixInsight, tone-map the umbra, rebuild blown sunlit slivers, and deliver per-phase TIFF/JPG, layered Photoshop PSDs, phone-format composites and an HTML report. Use when someone has a folder of moon/eclipse RAWs (RAF/NEF/CR3/ARW/DNG) and asks to stack, align, denoise, HDR-merge, or "do the post-processing" for them, or asks whether RAW is worth it.
 ---
 
 # Lunar eclipse stacking
 
-You are driving `moonstack`, a Python pipeline that turns a night of eclipse RAWs into finished images. It was built on 96 Fuji X-T30 frames (300 mm, untracked tripod, 96 % umbral coverage) and every rule below was learned from something that went wrong on that data. Read `references/pipeline-design.md` before changing any threshold.
+You are driving `moonstack`, a Python pipeline that turns a night of eclipse RAWs into finished images. It works with any camera whose RAW LibRaw decodes (Canon, Nikon, Sony, Fuji, Olympus/OM, Panasonic, Pentax, DNG…), any lens or telescope, tracked or untracked. It was developed on 96 Fuji X-T30 frames (300 mm, untracked tripod, 96 % umbral coverage) and every rule below was learned from something that went wrong on that data. Read `references/pipeline-design.md` before changing any threshold.
 
 ## What the user gets
 
@@ -28,7 +28,7 @@ python run.py --no-pi --no-ps       # without PixInsight / Photoshop
 Stages: `analyze → group → stack → pixinsight → finish → photoshop → report`. Each writes JSON to `output/`, so any stage reruns alone. Put overrides in `config.json` (see `config.example.json`); defaults live in `moonstack/config.py`.
 
 Before the first run, confirm with the user or the EXIF:
-1. **`sensor_width_mm`** for their camera (APS-C ≈ 23.5, full frame 36, M4/3 17.3). It only seeds the moon-radius prior; the prior is recalibrated from full-disk frames, so ±10 % is fine.
+1. **`sensor_width_mm`** for their camera (APS-C ≈ 23.5, full frame 36, M4/3 17.3, 1" 13.2) or `pixel_pitch_um`. It only seeds the moon-radius prior (recalibrated from full-disk frames, ±10 % is fine) and the trailing estimate. Telescopes / manual lenses: set `focal_mm`. Equatorial mount: `"tracked": true` (disables the drift model and trailing rejection).
 2. **Which Python** has `rawpy`, `opencv-python`, `scikit-image`, `tifffile`, `exifread`, `Pillow` (`pip install -r requirements.txt`). rawpy handles X-Trans; ~2 s per 26 MP frame.
 3. Whether PixInsight (BlurXTerminator + NoiseXTerminator) and Photoshop exist; paths are in config. Both are optional; without them the Python denoise is absent, so expect more noise in the umbra.
 

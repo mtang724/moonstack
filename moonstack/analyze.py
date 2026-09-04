@@ -8,10 +8,16 @@ from . import exif, raw, detect
 
 
 def list_raws(cfg):
-    files = []
-    for ext in cfg["raw_ext"]:
-        files += glob.glob(os.path.join(cfg["input_dir"], "*" + ext))
-    return sorted(set(files))
+    exts = {e.lower() for e in cfg["raw_ext"]}
+    files = [os.path.join(cfg["input_dir"], f) for f in os.listdir(cfg["input_dir"])
+             if os.path.splitext(f)[1].lower() in exts]
+    return sorted(files)
+
+
+def pixel_pitch_mm(cfg, img_width):
+    if cfg.get("pixel_pitch_um"):
+        return cfg["pixel_pitch_um"] / 1000.0
+    return cfg["sensor_width_mm"] / img_width
 
 
 def cache_path(cfg, rec):
@@ -36,12 +42,11 @@ def rad_scale(rec):
     return n2 / (rec["exp"] * rec["iso"])
 
 
-def trail_px(rec, sensor_width_mm):
-    """Expected motion blur (px) of an untracked moon: ~14.5 arcsec/s drift."""
-    if not rec.get("focal"):
+def trail_px(rec, cfg):
+    """Expected motion blur (px) of an untracked moon: ~14.5 arcsec/s drift. 0 on a tracked mount."""
+    if cfg.get("tracked") or not rec.get("focal"):
         return 0.0
-    pitch_mm = sensor_width_mm / rec["W"]
-    arcsec_per_px = 206265.0 * pitch_mm / rec["focal"]
+    arcsec_per_px = 206265.0 * pixel_pitch_mm(cfg, rec["W"]) / rec["focal"]
     return 14.5 * rec["exp"] / arcsec_per_px
 
 
@@ -100,10 +105,14 @@ def analyze_one(args):
     path, cfg = args
     S = cfg["crop_size"]
     meta = exif.read(path)
+    if cfg.get("focal_mm"):
+        meta["focal"] = float(cfg["focal_mm"])
+    if not meta.get("focal"):
+        raise SystemExit(f"{meta['file']}: no focal length in EXIF - set \"focal_mm\" in config.json")
     rgb, clip = raw.decode(path, cfg["raw_clip_level"])
     H, W = rgb.shape[:2]
     lum = raw.luminance(rgb)
-    R = detect.radius_prior_px(meta, W, cfg["sensor_width_mm"], cfg["moon_diameter_deg"])
+    R = detect.radius_prior_px(meta, pixel_pitch_mm(cfg, W), cfg["moon_diameter_deg"])
     center, area, bg, mad, R_fit = detect.find_moon(lum, R)
     rec = dict(meta, path=path, W=W, H=H, R=float(R), R_prior=float(R), R_fit=R_fit,
                area=area, bg=bg, noise=mad)

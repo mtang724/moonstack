@@ -1,6 +1,7 @@
 # MoonStack — 月食一键堆栈后期
 
-把一晚上的月食 RAW 自动变成每个阶段一张成片 + 全过程串珠合成图。
+把一晚上的月食 RAW 自动变成每个阶段一张成片 + 全过程串珠合成图。任何 LibRaw 能解的 RAW（佳能/尼康/索尼/富士/奥林巴斯/松下/宾得/DNG）、任何镜头或望远镜、有无赤道仪都行；
+相机相关的只有 `sensor_width_mm`（或 `pixel_pitch_um`）、望远镜要填 `focal_mm`、赤道仪填 `"tracked": true`。下面的数据和参数是在富士 X-T30 上调出来的。
 流程：RAW 解码 → 找月亮 → 质量打分剔除 → 阶段自动分组 → 亚像素对齐 + HDR 感知堆栈 →
 PixInsight BXT/NXT → 拉伸/色调映射 → Photoshop 分层 PSD → HTML 报告。
 
