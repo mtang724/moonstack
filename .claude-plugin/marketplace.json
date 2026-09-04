@@ -1,6 +1,6 @@
 {
   "name": "moonstack",
-  "owner": { "name": "Mingyue Tang" },
+  "owner": { "name": "moonstack" },
   "plugins": [
     {
       "name": "moonstack",

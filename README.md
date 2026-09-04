@@ -8,6 +8,10 @@ Built for — and on — 96 Fuji X-T30 frames of the 2026-08-27 eclipse (300 mm,
 
 <p align="center"><img src="docs/phone_grid.jpg" width="270"> &nbsp; <img src="docs/deep_hdr.jpg" width="380"></p>
 
+Before / after, all from the same untracked 300 mm frames — a single camera JPG of the umbra vs. the stack, a 100 % crop of a partial phase, and a sunlit sliver that was clipped in every exposure vs. the rebuilt one:
+
+![Before and after](docs/before_after.jpg)
+
 ## What it does
 
 ```

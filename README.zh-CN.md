@@ -7,18 +7,18 @@ PixInsight BXT/NXT → 拉伸/色调映射 → Photoshop 分层 PSD → HTML 报
 ## 运行
 
 ```powershell
-cd C:\Users\Ming\Documents\MoonStack
-C:\Users\Ming\anaconda3\python.exe run.py                # 全流程（约 6 分钟，96 张 RAF）
-C:\Users\Ming\anaconda3\python.exe run.py --from stack   # 从某个阶段继续
-C:\Users\Ming\anaconda3\python.exe run.py --stage finish # 只重跑一个阶段（调参时）
-C:\Users\Ming\anaconda3\python.exe run.py --no-pi --no-ps # 不用 PixInsight / Photoshop
+cd <项目目录>
+python run.py                # 全流程（约 6 分钟，96 张 RAF）
+python run.py --from stack   # 从某个阶段继续
+python run.py --stage finish # 只重跑一个阶段（调参时）
+python run.py --no-pi --no-ps # 不用 PixInsight / Photoshop
 ```
 
 阶段顺序：`analyze → group → stack → pixinsight → finish → photoshop → report`。
 每个阶段的结果都落在 `output/*.json`，所以任何阶段都能单独重跑。
 
-**一定要用 anaconda 的 python**（3.11，装了 rawpy/cv2/skimage/tifffile/exifread）；
-PATH 里的 `python` 是 3.14，没有这些包。
+**用装了 rawpy/cv2/skimage/tifffile/exifread 的 Python**（`pip install -r requirements.txt`）；
+不要用没装这些包的系统 Python。
 
 ## 目录
 
