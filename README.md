@@ -73,7 +73,7 @@ output/frames.json, groups.json      machine-readable state of every stage
 `skills/lunar-eclipse-stacking/SKILL.md` packages the workflow, log-reading guide and pitfalls so an agent can run and tune this pipeline. Install with
 
 ```
-claude plugin marketplace add <this repo>   # or copy the folder into ~/.claude/skills/
+claude plugin marketplace add mtang724/moonstack   # or copy the folder into ~/.claude/skills/
 ```
 
 ## License
