@@ -15,7 +15,9 @@ python run.py --stage finish # 只重跑一个阶段（调参时）
 python run.py --no-pi --no-ps # 不用 PixInsight / Photoshop
 ```
 
-阶段顺序：`analyze → group → stack → pixinsight → finish → photoshop → report`。
+阶段顺序：`preflight → analyze → group → stack → pixinsight → finish → photoshop → report`。
+`preflight` 先看相机（EXIF 等效焦距推传感器尺寸、CFA、位深）、光学（焦距→角分辨率→月盘像素→裁剪尺寸）、曝光档位和包围曝光、
+是否跟踪（实测月亮漂移）、工具是否存在，写出适配后的 `config.json`，拿不准的地方打 WARNING。
 每个阶段的结果都落在 `output/*.json`，所以任何阶段都能单独重跑。
 
 **用装了 rawpy/cv2/skimage/tifffile/exifread 的 Python**（`pip install -r requirements.txt`）；

@@ -1,6 +1,7 @@
 """MoonStack one-click runner.
 
     python run.py                 # full pipeline
+    python run.py --stage preflight  # inspect camera / optics / exposures / tools, adapt config
     python run.py --stage analyze # only decode + analyze
     python run.py --from stack    # resume from a stage (analyze, group, stack, pixinsight, finish, photoshop, report)
 """
@@ -9,7 +10,7 @@ import argparse, os, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from moonstack import config, pipeline
 
-STAGES = ["analyze", "group", "stack", "pixinsight", "finish", "photoshop", "report"]
+STAGES = ["preflight", "analyze", "group", "stack", "pixinsight", "finish", "photoshop", "report"]
 
 
 def main():

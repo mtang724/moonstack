@@ -25,12 +25,24 @@ python run.py --from stack          # resume from a stage
 python run.py --stage finish        # rerun one stage while tuning the look
 python run.py --no-pi --no-ps       # without PixInsight / Photoshop
 ```
-Stages: `analyze → group → stack → pixinsight → finish → photoshop → report`. Each writes JSON to `output/`, so any stage reruns alone. Put overrides in `config.json` (see `config.example.json`); defaults live in `moonstack/config.py`.
+Stages: `preflight → analyze → group → stack → pixinsight → finish → photoshop → report`. Each writes JSON to `output/`, so any stage reruns alone. Put overrides in `config.json` (see `config.example.json`); defaults live in `moonstack/config.py`.
 
-Before the first run, confirm with the user or the EXIF:
-1. **`sensor_width_mm`** for their camera (APS-C ≈ 23.5, full frame 36, M4/3 17.3, 1" 13.2) or `pixel_pitch_um`. It only seeds the moon-radius prior (recalibrated from full-disk frames, ±10 % is fine) and the trailing estimate. Telescopes / manual lenses: set `focal_mm`. Equatorial mount: `"tracked": true` (disables the drift model and trailing rejection).
-2. **Which Python** has `rawpy`, `opencv-python`, `scikit-image`, `tifffile`, `exifread`, `Pillow` (`pip install -r requirements.txt`). rawpy handles X-Trans; ~2 s per 26 MP frame.
-3. Whether PixInsight (BlurXTerminator + NoiseXTerminator) and Photoshop exist; paths are in config. Both are optional; without them the Python denoise is absent, so expect more noise in the umbra.
+## Step 0 — preflight: analyse the camera and adapt, before anything else
+
+Run `python run.py --stage preflight` first (it also runs automatically at the start of a full run) and read its report back to the user before stacking. It decides, from the data on disk:
+
+| it reports | decided from | you check |
+|---|---|---|
+| camera, RAW format, CFA (Bayer / X-Trans), bit depth, JPG sidecars | first RAW via LibRaw | nothing — informational |
+| sensor width / pixel pitch | EXIF 35 mm-equivalent focal → crop factor; else a model table; else the default **with a WARNING** | on a warning, ask the user for the sensor size or pixel pitch and put `sensor_width_mm` / `pixel_pitch_um` in `config.json` |
+| focal length, arcsec/px, moon diameter in px, crop size | EXIF (or `focal_mm`) | a telescope or manual lens gives no focal length → the stage stops and asks for `focal_mm`; a moon > ~700 px automatically enlarges `crop_size` |
+| exposure regimes (2-stop clusters), bracket ladders, time span | EXIF of every frame | one regime only → no umbra or no sunlit data; no ladder → a blown sliver cannot be rebuilt from measurement (say so up front) |
+| tracked vs untracked | moon drift between two frames a few seconds apart vs 14.5″/s sidereal | < 25 % of sidereal → treated as tracked (no drift model, no trailing rejection); the user can force `tracked` either way |
+| PixInsight / Photoshop / exiftool / CPU count | filesystem | absent tools are switched off for this run; CR3 without sidecars needs exiftool |
+
+It writes `output/preflight.json` and — only if none exists — a `config.json` with the adapted values, so the user's edits persist. Every `WARNING:` line is something to relay; the rest is context for interpreting later stages (e.g. a 200 px moon will never look like a 700 px one, and you should say that before the user compares with the README images).
+
+Also confirm which Python has `rawpy`, `opencv-python`, `scikit-image`, `tifffile`, `exifread`, `Pillow` (`pip install -r requirements.txt`); rawpy decodes X-Trans and Bayer alike, ~2 s per 26 MP frame.
 
 ## Answering "should I use RAW or JPG?"
 

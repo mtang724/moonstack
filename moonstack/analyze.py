@@ -44,7 +44,7 @@ def rad_scale(rec):
 
 def trail_px(rec, cfg):
     """Expected motion blur (px) of an untracked moon: ~14.5 arcsec/s drift. 0 on a tracked mount."""
-    if cfg.get("tracked") or not rec.get("focal"):
+    if cfg.get("tracked") is True or not rec.get("focal"):
         return 0.0
     arcsec_per_px = 206265.0 * pixel_pitch_mm(cfg, rec["W"]) / rec["focal"]
     return 14.5 * rec["exp"] / arcsec_per_px

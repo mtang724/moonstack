@@ -15,7 +15,7 @@ DEFAULTS = {
     "sensor_width_mm": 23.5,
     "pixel_pitch_um": None,
     "focal_mm": None,
-    "tracked": False,          # true for an equatorial mount: no drift model, no trailing rejection
+    "tracked": None,           # None = let preflight measure the drift; True for an equatorial mount
     "moon_diameter_deg": 0.52,
     # frame quality
     "keep_ratio": 0.70,        # keep frames with sharpness >= keep_ratio * best in group

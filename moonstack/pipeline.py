@@ -21,6 +21,9 @@ def _load(cfg, name):
 def run(cfg, stages):
     log = _log(cfg)
     log(f"=== MoonStack stages: {stages}")
+    if "preflight" in stages:
+        from . import preflight
+        preflight.run(cfg, log=log)
     if "analyze" in stages:
         from . import analyze
         analyze.run(cfg, log=log)

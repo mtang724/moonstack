@@ -50,7 +50,18 @@ python run.py --stage finish        # rerun one stage while tuning the look
 python -m moonstack.share           # shareable single-file page
 ```
 
-Put your RAWs (with or without JPG sidecars) in `Eclipse/` or set `input_dir` in `config.json` (copy `config.example.json`). Camera / optics settings:
+Put your RAWs (with or without JPG sidecars) in `Eclipse/` or set `input_dir` in `config.json`. The first stage, **preflight**, inspects the camera (sensor size from the EXIF crop factor, CFA type, bit depth), the optics (focal length → arcsec/px → moon size → crop size), the exposures (regimes, bracket ladders) and whether the mount was tracking (measured moon drift), then writes an adapted `config.json` and prints warnings for anything it could not determine:
+
+```
+[preflight] 96 x .RAF from X-T30  6246x4170 X-Trans 6x6 14-bit  (JPG sidecars)
+[preflight] sensor 24.0 mm / 3.842 um px  <- EXIF 35mm-equivalent focal (450 mm -> crop 1.50x)
+[preflight] focal 300 mm -> 2.64"/px, moon ~709 px, crop 1024 px
+[preflight]   regime +4 stops: 45 frames  e.g. 0.25s/ISO1600/f6.3 ...
+[preflight] bracket ladders: [12]
+[preflight] drift 3.53 px/s (untracked would be 5.49) -> untracked
+```
+
+Settings you may still need to give it:
 
 | key | when |
 |---|---|
@@ -58,7 +69,7 @@ Put your RAWs (with or without JPG sidecars) in `Eclipse/` or set `input_dir` in
 | `focal_mm` | telescopes and manual lenses that write no focal length to EXIF |
 | `tracked: true` | equatorial mount — turns off the drift model and the trailing rejection |
 
-These only seed the moon-radius prior (recalibrated from full-disk frames) and the motion-blur estimate, so ±10 % is fine.
+These only seed the moon-radius prior (recalibrated from full-disk frames) and the motion-blur estimate, so ±10 % is fine. Non-Fuji bodies have not been run end-to-end yet — the decode, EXIF and geometry paths are generic, but if preflight reports something odd for your camera, please open an issue with its output.
 
 ## Outputs
 

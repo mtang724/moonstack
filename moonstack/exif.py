@@ -34,16 +34,18 @@ def read(raw_path):
             "ISOSpeedRatings": t["EXIF ISOSpeedRatings"].values[0] if "EXIF ISOSpeedRatings" in t else None,
             "FNumber": t["EXIF FNumber"].values[0] if "EXIF FNumber" in t else None,
             "FocalLength": t["EXIF FocalLength"].values[0] if "EXIF FocalLength" in t else None,
+            "FocalLengthIn35mmFilm": t["EXIF FocalLengthIn35mmFilm"].values[0] if "EXIF FocalLengthIn35mmFilm" in t else None,
             "Model": str(t.get("Image Model", "")),
         }
     if not tags.get("ExposureTime") and shutil.which("exiftool"):
         out = subprocess.run(["exiftool", "-j", "-n", "-DateTimeOriginal", "-ExposureTime", "-ISO", "-FNumber",
-                              "-FocalLength", "-Model", raw_path], capture_output=True, text=True)
+                              "-FocalLength", "-FocalLengthIn35mmFormat", "-Model", raw_path], capture_output=True, text=True)
         try:
             j = json.loads(out.stdout)[0]
             tags = {"DateTimeOriginal": j.get("DateTimeOriginal"), "ExposureTime": j.get("ExposureTime"),
                     "ISOSpeedRatings": j.get("ISO"), "FNumber": j.get("FNumber"),
-                    "FocalLength": j.get("FocalLength"), "Model": j.get("Model", "")}
+                    "FocalLength": j.get("FocalLength"), "FocalLengthIn35mmFilm": j.get("FocalLengthIn35mmFormat"),
+                    "Model": j.get("Model", "")}
         except Exception:
             pass
     if not tags.get("ExposureTime"):
@@ -59,5 +61,6 @@ def read(raw_path):
     meta["iso"] = float(iso or 100)
     meta["fnum"] = _ratio(tags.get("FNumber")) or 0.0
     meta["focal"] = _ratio(tags.get("FocalLength")) or 0.0
+    meta["focal35"] = _ratio(tags.get("FocalLengthIn35mmFilm")) or 0.0
     meta["model"] = str(tags.get("Model", "")).strip()
     return meta

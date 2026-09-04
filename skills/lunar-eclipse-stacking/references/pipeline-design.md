@@ -2,6 +2,10 @@
 
 Stages map 1:1 to modules in `moonstack/`. Everything below the line "why" was learned on real data (Fuji X-T30 + 18-300 @ 300 mm, untracked, 96 RAF, 2026-08-27 eclipse, deepest phase 96 %).
 
+## 0. preflight (`preflight.py`)
+
+Camera-agnostic adaptation before any pixel work: sensor width from the EXIF 35 mm-equivalent focal length (crop factor) with a model table as fallback; moon diameter and crop size from focal × pitch; exposure regimes and bracket ladders from EXIF; tracked/untracked from the measured drift of the moon centre between two close frames (untracked ≈ 14.5″/s); tool availability. Writes `output/preflight.json` and an initial `config.json`. Everything downstream reads the adapted config, so a Canon full-frame on a telescope and a Fuji APS-C on a zoom go through the same code.
+
 ## 1. analyze (`analyze.py`, `raw.py`, `exif.py`, `detect.py`)
 
 - Decode with rawpy: linear (`gamma=(1,1)`, `no_auto_bright`), **daylight** white balance (not as-shot — auto WB drifts between frames), sRGB primaries, 16-bit. Keep a **clip mask** from the raw mosaic (≥ 0.97 × white level, dilated 5 px) — after demosaicing you cannot tell a saturated pixel from a bright one.
